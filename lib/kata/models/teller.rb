@@ -1,5 +1,4 @@
 class Kata::Teller
-
   def initialize(catalog)
     @catalog = catalog
     @offers = {}
@@ -11,17 +10,24 @@ class Kata::Teller
 
   def checks_out_articles_from(the_cart)
     receipt = Kata::Receipt.new
-    product_quantities = the_cart.items
-    for pq in product_quantities do
-      p = pq.product
+    items = the_cart.items
+    for pq in items do
+      product = pq.product
       quantity = pq.quantity
-      unit_price = @catalog.unit_price(p)
+      unit_price = @catalog.unit_price(product)
       price = quantity * unit_price
-      receipt.add_product(p, quantity, unit_price, price)
+      receipt.add_product(product, quantity, unit_price, price)
     end
-    the_cart.handle_offers(receipt, @offers, @catalog)
+    handle_offers(receipt, @offers, @catalog, the_cart)
 
     receipt
   end
 
+  private
+  
+  def handle_offers(receipt, offers, catalog, the_cart)
+    for product in the_cart.product_quantities.keys do
+      Kata::DiscountCalculator.new(receipt, offers, catalog, product, the_cart.product_quantities).handle_offer
+    end
+  end
 end
